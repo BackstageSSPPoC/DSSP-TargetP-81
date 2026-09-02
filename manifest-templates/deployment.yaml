@@ -27,6 +27,8 @@ spec:
           env:
             - name: APP_ENV
               value: "${NAMESPACE}"
+            - name: URL_PREFIX
+              value: /${APP_NAME}-${NAMESPACE}
           resources:
             requests:
               memory: "384Mi"
