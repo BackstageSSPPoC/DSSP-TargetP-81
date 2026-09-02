@@ -5,6 +5,8 @@ from zoneinfo import ZoneInfo
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 import time
 import os
+app = Flask(__name__)
+IST = ZoneInfo("Asia/Kolkata")
 
 class PrefixMiddleware:
     def __init__(self, app, prefix=""):
@@ -21,9 +23,6 @@ class PrefixMiddleware:
             return [b"This URL does not belong to the app."]
 
 app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=os.environ.get("URL_PREFIX", ""))
-
-app = Flask(__name__)
-IST = ZoneInfo("Asia/Kolkata")
 
 # ---- Prometheus metrics ----
 REQUEST_COUNT = Counter(
