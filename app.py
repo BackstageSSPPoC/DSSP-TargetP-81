@@ -8,22 +8,6 @@ import os
 app = Flask(__name__)
 IST = ZoneInfo("Asia/Kolkata")
 
-class PrefixMiddleware:
-    def __init__(self, app, prefix=""):
-        self.app = app
-        self.prefix = prefix
-
-    def __call__(self, environ, start_response):
-        if environ["PATH_INFO"].startswith(self.prefix):
-            environ["PATH_INFO"] = environ["PATH_INFO"][len(self.prefix):]
-            environ["SCRIPT_NAME"] = self.prefix
-            return self.app(environ, start_response)
-        else:
-            start_response("404", [("Content-Type", "text/plain")])
-            return [b"This URL does not belong to the app."]
-
-app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=os.environ.get("URL_PREFIX", ""))
-
 # ---- Prometheus metrics ----
 REQUEST_COUNT = Counter(
     'http_requests_total', 'Total HTTP requests',
@@ -111,6 +95,22 @@ def health():
         "status": "UP",
         "timestamp": get_ist_time()
     }
+
+class PrefixMiddleware:
+    def __init__(self, app, prefix=""):
+        self.app = app
+        self.prefix = prefix
+
+    def __call__(self, environ, start_response):
+        if environ["PATH_INFO"].startswith(self.prefix):
+            environ["PATH_INFO"] = environ["PATH_INFO"][len(self.prefix):]
+            environ["SCRIPT_NAME"] = self.prefix
+            return self.app(environ, start_response)
+        else:
+            start_response("404", [("Content-Type", "text/plain")])
+            return [b"This URL does not belong to the app."]
+
+app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=os.environ.get("URL_PREFIX", ""))
 
 if __name__ == "__main__":
     print(f"[LOG] Flask App Started at {get_ist_time()}")
